@@ -2,7 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.*;
-import java.io.File;
 import javax.sound.sampled.*;
 
 public class Board extends JPanel implements ActionListener {
@@ -26,10 +25,15 @@ public class Board extends JPanel implements ActionListener {
     private boolean upDirection = false;
     private boolean downDirection = false;
 
+    public boolean startGameFlag = true;
+    private boolean paused = false;
     private boolean inGame =true;
 
     private int dots;
     private Timer timer;
+
+    private Clip backgroundClip;
+
 
     Board(){
         addKeyListener(new TAdapter());
@@ -39,7 +43,6 @@ public class Board extends JPanel implements ActionListener {
         setFocusable(true);
 
         loadImages();
-        initGame();
     }
 
     public void loadImages(){
@@ -54,7 +57,30 @@ public class Board extends JPanel implements ActionListener {
 
     }
 
+    public void startGame(Graphics g){
+
+        String msg0 = "🐍 Snake Game 🐍";
+        String msg = "Press Space to start Game :";
+        String msg1 = "Press P to Pause the Game :";
+        Font font0 = new Font("SAN_SERIF" , Font.BOLD , 16);
+        Font font = new Font("SAN_SERIF" , Font.BOLD , 14);
+        Font font1 = new Font("SAN_SERIF" , Font.BOLD , 14);
+        FontMetrics metrices0 = getFontMetrics(font0);
+        FontMetrics metrices = getFontMetrics(font);
+        FontMetrics metrices1 = getFontMetrics(font1);
+
+        g.setColor(Color.white);
+        g.setFont(font0);
+        g.setFont(font);
+        g.setFont(font1);
+        g.drawString(msg0 , (400 - metrices.stringWidth(msg))/2 , 500/2-50);
+        g.drawString(msg , (400 - metrices.stringWidth(msg))/2 , 500/2);
+        g.drawString(msg1 , (400 - metrices1.stringWidth(msg))/2 , (500/2)+50);
+    }
     public void initGame(){
+        if (timer != null) {
+            timer.stop();
+        }
         dots = 3;
 
         for(int i = 0; i < dots ; i++){
@@ -66,6 +92,16 @@ public class Board extends JPanel implements ActionListener {
 
         timer = new Timer(140 , this);
         timer.start();
+    }
+
+    public void restart(Graphics g){
+        String msg = "Press Enter to restart Game :";
+        Font font = new Font("SAN_SERIF" , Font.BOLD , 14);
+        FontMetrics metrices = getFontMetrics(font);
+
+        g.setColor(Color.white);
+        g.setFont(font);
+        g.drawString(msg , (400 - metrices.stringWidth(msg))/2 , (500/2) + 50);
     }
 
     public void locateApple(){
@@ -82,7 +118,11 @@ public class Board extends JPanel implements ActionListener {
     }
 
     public void draw(Graphics g){
-        if(inGame) {
+        if (startGameFlag) {
+            stopBackGroundSound();
+            startGame(g);
+        }
+        if(inGame && (!startGameFlag)) {
             g.drawImage(apple, apple_x, apple_y, this);
 
             for (int i = 0; i < dots; i++) {
@@ -94,9 +134,10 @@ public class Board extends JPanel implements ActionListener {
             }
             Toolkit.getDefaultToolkit().sync();
         }
-        else{
+        if(!inGame){
             gameOver(g);
             scoreCounter(g);
+            restart(g);
         }
     }
 
@@ -122,6 +163,26 @@ public class Board extends JPanel implements ActionListener {
         }
     }
 
+    public void playBackGroundSound() {
+        try {
+            if (backgroundClip == null) {
+                backgroundClip = AudioSystem.getClip();
+                AudioInputStream audio = AudioSystem.getAudioInputStream(getClass().getResource("/sound/music.wav"));
+                backgroundClip.open(audio);
+                backgroundClip.loop(Clip.LOOP_CONTINUOUSLY);  // repeat
+            }
+            backgroundClip.start();  // play if paused
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopBackGroundSound() {
+        if (backgroundClip != null && backgroundClip.isRunning()) {
+            backgroundClip.stop();
+        }
+    }
+
 
 
     public void gameOver(Graphics g){
@@ -131,7 +192,7 @@ public class Board extends JPanel implements ActionListener {
 
         g.setColor(Color.white);
         g.setFont(font);
-        g.drawString(msg , (400 - metrices.stringWidth(msg))/2 , 500/2);
+        g.drawString(msg , (400 - metrices.stringWidth(msg))/2 , 500/2 - 50);
     }
 
     public void scoreCounter(Graphics g){
@@ -141,8 +202,9 @@ public class Board extends JPanel implements ActionListener {
 
         g.setColor(Color.white);
         g.setFont(font);
-        g.drawString(msg , (400 - metrices.stringWidth(msg))/2 , (500/2) + 50);
+        g.drawString(msg , (400 - metrices.stringWidth(msg))/2 , (500/2) );
     }
+
 
     public void move(){
         for(int i = dots ; i > 0; i--){
@@ -188,21 +250,23 @@ public class Board extends JPanel implements ActionListener {
             inGame = false;
         }
 
-        if(!inGame){
+        if (!inGame) {
             timer.stop();
+            stopBackGroundSound();
             playGameOverSound();
         }
+
     }
 
     public void actionPerformed(ActionEvent ae){
-        if(inGame){
+        if (!paused && inGame) {
             checkApple();
             checkCollision();
             move();
         }
-
         repaint();
     }
+
 
     public class TAdapter extends KeyAdapter{
         @Override
@@ -225,6 +289,33 @@ public class Board extends JPanel implements ActionListener {
                 downDirection = true;
                 leftDirection = false;
                 rightDirection = false;
+            }
+            if(key == KeyEvent.VK_ENTER && (!startGameFlag) && (!inGame)){
+                rightDirection = true;
+                leftDirection = false;
+                upDirection = false;
+                downDirection = false;
+                initGame();
+                inGame = true;
+                playBackGroundSound();
+            }
+            if(key == KeyEvent.VK_SPACE){
+                rightDirection = true;
+                leftDirection = false;
+                upDirection = false;
+                downDirection = false;
+                startGameFlag = false;
+                initGame();
+                inGame = true;
+                playBackGroundSound();
+            }
+            if (key == KeyEvent.VK_P) {
+                paused = !paused;
+                if (paused) {
+                    if (timer != null) timer.stop();
+                } else {
+                    if (timer != null) timer.start();
+                }
             }
         }
     }
