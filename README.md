@@ -80,10 +80,14 @@ Place your sound file here:
 ------------------------------------------------------------------------
 
 ## How to Run
+-   Change Directory :
 
 ``` sh
-javac SnakeGame.java Board.java
-java SnakeGame
+cd SnakeGame\src
+```
+-   And Start The Game :
+```sh
+java SnakeGame.java
 ```
 
 ------------------------------------------------------------------------

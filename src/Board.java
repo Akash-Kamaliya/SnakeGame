@@ -102,9 +102,9 @@ public class Board extends JPanel implements ActionListener {
 
     public void playGameOverSound() {
         try {
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("src/sound/gameOver.wav"));
             Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
+            AudioInputStream audio = AudioSystem.getAudioInputStream(getClass().getResource("/sound/gameOver.wav"));
+            clip.open(audio);
             clip.start();
         } catch (Exception e) {
             e.printStackTrace();
@@ -113,14 +113,15 @@ public class Board extends JPanel implements ActionListener {
 
     public void playAppleSound() {
         try {
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File("src/sound/apple.wav"));
             Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
+            AudioInputStream audio = AudioSystem.getAudioInputStream(getClass().getResource("/sound/apple.wav"));
+            clip.open(audio);
             clip.start();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
 
     public void gameOver(Graphics g){
