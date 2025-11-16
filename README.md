@@ -60,18 +60,10 @@ Handles: - Snake movement\
 
 ------------------------------------------------------------------------
 
-## Sound
-
-Place your sound file here:
-
-    src/sound/gameOver.wav
-
-------------------------------------------------------------------------
-
 ## Controls
 
   Key             Action
-  --------------- ------------
+  
   ⬆ Up Arrow      Move Up
   ⬇ Down Arrow    Move Down
   ⬅ Left Arrow    Move Left
